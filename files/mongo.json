@@ -1,0 +1,15 @@
+{
+  "mongo": {
+    "scheme": "mongodb+srv",
+    "host": "mongo.example.com",
+    "port": 27018,
+    "username": "toml-user",
+    "password": "toml-pass",
+    "database": "toml-db",
+    "collection": "toml-collection",
+    "params": "?retryWrites=true&w=majority",
+    "replicaSet": "rs0",
+    "connectTimeout": 20,
+    "readPreference": "secondary"
+  }
+}
