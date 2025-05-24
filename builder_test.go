@@ -184,3 +184,29 @@ func TestJsonSource(t *testing.T) {
 	require.Equal(t, uint64(20), config.ConnectTimeout)
 	require.Equal(t, "secondary", config.ReadPreference)
 }
+
+func TestYamlSource(t *testing.T) {
+	type A struct {
+		Mongo MongoConfig `cfg:"mongo"`
+	}
+
+	var a A
+	builder := New().
+		SetSource("./files/mongo.yaml", 100)
+
+	err := builder.Load(&a)
+	require.NoError(t, err)
+
+	config := a.Mongo
+	require.Equal(t, "mongodb+srv", config.Scheme)
+	require.Equal(t, "mongo.example.com", config.Host)
+	require.Equal(t, uint16(27018), config.Port)
+	require.Equal(t, "toml-user", config.Username)
+	require.Equal(t, "toml-pass", config.Password)
+	require.Equal(t, "toml-db", config.Database)
+	require.Equal(t, "toml-collection", config.Collection)
+	require.Equal(t, "?retryWrites=true&w=majority", config.Params)
+	require.Equal(t, "rs0", config.ReplicaSet)
+	require.Equal(t, uint64(20), config.ConnectTimeout)
+	require.Equal(t, "secondary", config.ReadPreference)
+}

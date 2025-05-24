@@ -48,11 +48,9 @@ func (b *Builder) SetSource(name string, priority int) *Builder {
 
 	switch {
 	case nameLower == "env":
-		// Load from OS environment
 		b.sources = append(b.sources, NewEnvSource("env", priority, WithPrefix(b.envPrefix), WithSeparator(b.envSep)))
 
 	case strings.HasPrefix(filepath.Base(nameLower), ".env"):
-		// Load from a .env file
 		b.sources = append(b.sources, NewEnvSource(nameLower, priority, WithPrefix(b.envPrefix), WithSeparator(b.envSep)))
 
 	case strings.HasSuffix(filepath.Base(nameLower), ".json"):
@@ -60,6 +58,9 @@ func (b *Builder) SetSource(name string, priority int) *Builder {
 
 	case strings.HasSuffix(filepath.Base(nameLower), ".toml"):
 		b.sources = append(b.sources, NewTomlSource(nameLower, "", priority))
+
+	case strings.HasSuffix(filepath.Base(nameLower), ".yaml"):
+		b.sources = append(b.sources, NewYamlSource(nameLower, "", priority))
 
 	case !strings.Contains(name, "."):
 		b.err = fmt.Errorf("no source type provided for %s", name)
@@ -186,24 +187,30 @@ func parseDefault(def string, t reflect.Type) (reflect.Value, error) {
 	switch t.Kind() {
 	case reflect.String:
 		return reflect.ValueOf(def), nil
+
 	case reflect.Bool:
 		v, err := strconv.ParseBool(def)
 		return reflect.ValueOf(v), err
+
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		v, err := strconv.ParseInt(def, 10, 64)
 		return reflect.ValueOf(v).Convert(t), err
+
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		v, err := strconv.ParseUint(def, 10, 64)
 		return reflect.ValueOf(v).Convert(t), err
+
 	case reflect.Float32, reflect.Float64:
 		v, err := strconv.ParseFloat(def, 64)
 		return reflect.ValueOf(v).Convert(t), err
+
 	case reflect.Slice:
 		if t.Elem().Kind() == reflect.String {
 			parts := strings.Split(def, ",")
 			return reflect.ValueOf(parts), nil
 		}
 		return reflect.Value{}, fmt.Errorf("unsupported slice type")
+
 	default:
 		return reflect.Value{}, fmt.Errorf("unsupported kind: %s", t.Kind())
 	}
