@@ -72,7 +72,7 @@ You can control field behavior using tags:
 
 ---
 
-## 🛠️ Supported Sources
+## Supported Sources
 
 | Source       | Description                    |
 |--------------|--------------------------------|
