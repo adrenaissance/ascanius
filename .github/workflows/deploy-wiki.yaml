@@ -2,6 +2,10 @@ name: Deploy Wiki
 
 on:
   push:
+
+permissions:
+  contents: write
+
 jobs:
   deploy-wiki:
     runs-on: ubuntu-latest
