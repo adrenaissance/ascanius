@@ -13,12 +13,12 @@ jobs:
       all_docs: ${{ steps.check-commits.outputs.all_docs }}
     steps:
       - uses: actions/checkout@v4
-
       - id: check-commits
         name: Check last commit conventional commit and docs-only
         run: |
           regex="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test|revert|release)(\([a-zA-Z0-9_\s\-]+\))?(!)?: .{1,50}"
 
+          # Get the last commit SHA depending on event
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
             last_commit=${{ github.sha }}
           else
@@ -26,6 +26,13 @@ jobs:
           fi
 
           msg=$(git log -1 --pretty=format:%s $last_commit)
+
+          # Skip merge commits
+          if [[ "$msg" =~ ^Merge ]]; then
+            echo "Skipping merge commit message: $msg"
+            echo "::set-output name=all_docs::false"
+            exit 0
+          fi
 
           error=0
           all_docs=true
@@ -47,6 +54,7 @@ jobs:
 
           echo "::set-output name=all_docs::$all_docs"
           echo "Commit message is valid."
+
 
   build:
     needs: conventional-commit
