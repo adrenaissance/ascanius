@@ -1,0 +1,21 @@
+name: Deploy Wiki
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+jobs:
+  deploy-wiki:
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.head_commit.message, 'docs')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Print commit message
+        run: echo "Last commit: ${{ github.event.head_commit.message }}"
+
+      - uses: actions4gh/configure-wiki@v1
+      - uses: actions4gh/deploy-wiki@v1

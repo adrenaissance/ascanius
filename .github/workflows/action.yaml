@@ -21,7 +21,6 @@ jobs:
         run: |
           regex="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test|revert|release)(\([a-zA-Z0-9_\s\-]+\))?(!)?: .{1,50}"
 
-          # Get the last commit SHA depending on event
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
             last_commit=${{ github.sha }}
           else
@@ -53,8 +52,8 @@ jobs:
 
   build:
     needs: conventional-commit
-    runs-on: ubuntu-latest
     if: needs.conventional-commit.outputs.all_docs != 'true'
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:
@@ -62,7 +61,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Go ${{ matrix.go-version }}
         uses: actions/setup-go@v5
         with:
@@ -80,3 +78,13 @@ jobs:
       - name: Test with the Go CLI
         run: go test
 
+  deploy-wiki:
+    needs: conventional-commit
+    if: needs.conventional-commit.outputs.all_docs == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions4gh/configure-wiki@v1
+      - uses: actions4gh/deploy-wiki@v1
