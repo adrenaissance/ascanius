@@ -1,0 +1,51 @@
+name: Conventional Commit Check
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+  pull_request:
+
+jobs:
+  conventional-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check conventional commits
+        run: |
+
+          # Regex for conventional commits
+          regex="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test|revert|release)(\([\w\s\-]+\))?(!)?: .{1,50}"
+
+          # Determine commit range
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+
+            # For push event, get commits in the push
+            commits=$(git rev-list ${{ github.event.before }}..${{ github.sha }})
+          else
+
+            # For PR event, get commits from base to head
+            commits=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+          fi
+
+          error=0
+          for sha in $commits; do
+            msg=$(git log -1 --pretty=format:%s $sha)
+            if ! [[ $msg =~ $regex ]]; then
+              echo "Commit $sha message does not follow conventional commit format:"
+              echo "  \"$msg\""
+              error=1
+            fi
+          done
+
+          if [ $error -eq 1 ]; then
+            echo "One or more commit messages are invalid."
+            exit 1
+          fi
+
+          echo "All commit messages are valid conventional commits."
+
