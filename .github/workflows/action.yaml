@@ -6,13 +6,11 @@ on:
     branches:
       - main
       - master
-
 jobs:
   conventional-commit:
     runs-on: ubuntu-latest
     outputs:
       all_docs: ${{ steps.check-commits.outputs.all_docs }}
-
     steps:
       - uses: actions/checkout@v4
 
