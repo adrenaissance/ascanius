@@ -3,15 +3,46 @@ name: Deploy Wiki
 on:
   push:
     branches:
-      - '**'
+      - main
     paths:
       - 'docs/**'
+
 jobs:
   deploy-wiki:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions4gh/configure-wiki@v1
-      - uses: actions4gh/deploy-wiki@v1
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+
+      - name: Check if there are any changes in docs/
+        id: check-docs
+        run: |
+          if git diff --quiet HEAD^ HEAD -- docs/; then
+            echo "No changes in docs/"
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in docs/"
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy to Wiki
+        if: steps.check-docs.outputs.changed == 'true'
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+          # Clone the wiki repo
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git" wiki
+
+          # Copy files from docs to wiki
+          rsync -av --delete docs/ wiki/
+
+          cd wiki
+          git add .
+          if git diff --cached --quiet; then
+            echo "No changes to commit in wiki"
+          else
+            git commit -m "docs: update wiki from docs/"
+            git push
+          fi
+
