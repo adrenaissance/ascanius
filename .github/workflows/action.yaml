@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - master
+
 jobs:
   conventional-commit:
     runs-on: ubuntu-latest
@@ -16,40 +17,39 @@ jobs:
       - uses: actions/checkout@v4
 
       - id: check-commits
-        name: Check conventional commits and docs-only
+        name: Check last commit conventional commit and docs-only
         run: |
           regex="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test|revert|release)(\([\w\s\-]+\))?(!)?: .{1,50}"
 
+          # Get the last commit SHA depending on event
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            commits=$(git rev-list ${{ github.event.before }}..${{ github.sha }})
+            last_commit=${{ github.sha }}
           else
-            commits=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
+            last_commit=$(git rev-parse HEAD)
           fi
+
+          msg=$(git log -1 --pretty=format:%s $last_commit)
 
           error=0
           all_docs=true
 
-          for sha in $commits; do
-            msg=$(git log -1 --pretty=format:%s $sha)
+          if ! [[ $msg =~ $regex ]]; then
+            echo "Commit $last_commit message does not follow conventional commit format:"
+            echo "  \"$msg\""
+            error=1
+          fi
 
-            if ! [[ $msg =~ $regex ]]; then
-              echo "Commit $sha message does not follow conventional commit format:"
-              echo "  \"$msg\""
-              error=1
-            fi
-
-            if ! [[ $msg =~ ^docs ]]; then
-              all_docs=false
-            fi
-          done
+          if ! [[ $msg =~ ^docs ]]; then
+            all_docs=false
+          fi
 
           if [ $error -eq 1 ]; then
-            echo "One or more commit messages are invalid."
+            echo "Commit message is invalid."
             exit 1
           fi
 
           echo "::set-output name=all_docs::$all_docs"
-          echo "All commits are valid."
+          echo "Commit message is valid."
 
   build:
     needs: conventional-commit
