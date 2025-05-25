@@ -11,14 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Deploy to Wiki
+      - name: Deploy docs to Wiki
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
 
           # Clone wiki repo into temp folder
           git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki-temp
+
+          # Fix remote URL (in case rsync deleted .git/config)
+          cd wiki-temp
+          git remote set-url origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git"
+          cd ..
 
           # Copy all files from docs/ to wiki-temp/ root (overwrite)
           rsync -av --delete docs/ wiki-temp/
@@ -29,5 +33,5 @@ jobs:
             echo "No changes to commit in wiki"
           else
             git commit -m "docs: update wiki from docs/"
-            git push
+            git push origin HEAD
           fi
