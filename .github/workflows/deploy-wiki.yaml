@@ -10,30 +10,20 @@ jobs:
   deploy-wiki:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main branch
-        uses: actions/checkout@v4
-
-      - name: Check if there are any changes in docs/
-        id: check-docs
-        run: |
-          if git diff --quiet HEAD^ HEAD -- docs/; then
-            echo "No changes in docs/"
-            echo "changed=false" >> $GITHUB_OUTPUT
-          else
-            echo "Changes detected in docs/"
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
+      - uses: actions/checkout@v4
 
       - name: Deploy to Wiki
-        if: steps.check-docs.outputs.changed == 'true'
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
 
-          # Clone the wiki repo
-          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git" wiki
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/adrenaissance/ascanius.wiki.git wiki
 
-          # Copy files from docs to wiki
+          # Fix remote URL (just in case)
+          cd wiki
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/adrenaissance/ascanius.wiki.git
+          cd ..
+
           rsync -av --delete docs/ wiki/
 
           cd wiki
