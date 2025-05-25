@@ -1,16 +1,14 @@
 name: Go
 
 on:
-  push:
-    branches:
-      - main
-      - master
+  # for now run on all branches
+  push: 
   pull_request:
 
 jobs:
   build:
     needs: conventional-commit
-    if: needs.conventional-commit.outputs.all_docs != 'true'   # <-- Skip if all docs commits
+    if: needs.conventional-commit.outputs.all_docs != 'true'  # if all docs then we don't build
     runs-on: ubuntu-latest
     strategy:
       matrix:
