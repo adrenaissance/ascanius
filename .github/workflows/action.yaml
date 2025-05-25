@@ -12,13 +12,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Go ${{ matrix.go-version }}
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
 
+
       - name: Display Go version
         run: go version
+
+      - name: List files
+        run: ls -R
 
       - name: Install dependencies
         run: go get .
