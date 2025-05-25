@@ -1,14 +1,64 @@
-name: Go
+name: CI Pipeline
 
-on: [push]
+on:
+  push:
+  pull_request:
+    branches:
+      - main
+      - master
 
 jobs:
-  build:
-
+  conventional-commit:
     runs-on: ubuntu-latest
+    outputs:
+      all_docs: ${{ steps.check-commits.outputs.all_docs }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: check-commits
+        name: Check last commit conventional commit and docs-only
+        run: |
+          regex="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test|revert|release)(\([a-zA-Z0-9_\s\-]+\))?(!)?: .{1,50}"
+
+          # Get the last commit SHA depending on event
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            last_commit=${{ github.sha }}
+          else
+            last_commit=$(git rev-parse HEAD)
+          fi
+
+          msg=$(git log -1 --pretty=format:%s $last_commit)
+
+          error=0
+          all_docs=true
+
+          if ! [[ $msg =~ $regex ]]; then
+            echo "Commit $last_commit message does not follow conventional commit format:"
+            echo "  \"$msg\""
+            error=1
+          fi
+
+          if ! [[ $msg =~ ^docs ]]; then
+            all_docs=false
+          fi
+
+          if [ $error -eq 1 ]; then
+            echo "Commit message is invalid."
+            exit 1
+          fi
+
+          echo "::set-output name=all_docs::$all_docs"
+          echo "Commit message is valid."
+
+  build:
+    needs: conventional-commit
+    runs-on: ubuntu-latest
+    if: needs.conventional-commit.outputs.all_docs != 'true'
+
     strategy:
       matrix:
-        go-version: [ '1.24.x' ]
+        go-version: ['1.24.x']
 
     steps:
       - uses: actions/checkout@v4
@@ -18,12 +68,8 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
-
       - name: Display Go version
         run: go version
-
-      - name: List files
-        run: ls -R
 
       - name: Install dependencies
         run: go get .
@@ -33,3 +79,4 @@ jobs:
 
       - name: Test with the Go CLI
         run: go test
+
