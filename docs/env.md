@@ -1,6 +1,6 @@
 # Environment Variables and `.env` File Loading
 
-This document explains how environment variables and `.env` files are loaded and processed,  
+This document explains how environment variables and `.env` files are loaded and processed,
 including how to customize prefixes and separators for nested configuration.
 
 ---
