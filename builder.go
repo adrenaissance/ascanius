@@ -71,6 +71,43 @@ func (b *Builder) SetSource(name string, priority int) *Builder {
 
 	return b
 }
+func (b *Builder) LoadSection(target any, section string) error {
+	if b.err != nil {
+		return b.err
+	}
+	if target == nil {
+		return errors.New("target cannot be nil")
+	}
+
+	sort.SliceStable(b.sources, func(i, j int) bool {
+		return b.sources[i].Priority() < b.sources[j].Priority()
+	})
+
+	merged := make(map[string]any)
+
+	for _, src := range b.sources {
+		name := src.Name()
+
+		var data map[string]any
+		if cached, ok := b.mapSource[name]; ok {
+			data = cached
+		} else {
+			data = src.Load()
+			data = normalizeKeysToSnakeCase(data)
+			b.mapSource[name] = data
+		}
+
+		merged = mergeMaps(merged, data)
+	}
+
+	sectionKey := toSnakeCase(section)
+	if sectionData, ok := merged[sectionKey]; ok {
+		if sectionMap, ok := sectionData.(map[string]any); ok {
+			return b.applyValues(target, sectionMap)
+		}
+	}
+	return fmt.Errorf("section '%s' not found", sectionKey)
+}
 
 func (b *Builder) Load(target any) error {
 	if b.err != nil {
@@ -116,11 +153,16 @@ func (b *Builder) applyValues(target any, data map[string]any) error {
 	}
 
 	typ := val.Type()
+	structNameKey := toSnakeCase(typ.Name())
+	if sectionData, ok := data[structNameKey]; ok {
+		if sectionMap, ok := sectionData.(map[string]any); ok {
+			return b.applyValues(target, sectionMap)
+		}
+	}
 
 	for i := range typ.NumField() {
 		field := typ.Field(i)
 		fieldVal := val.Field(i)
-
 		if !fieldVal.CanSet() {
 			continue
 		}
@@ -132,8 +174,7 @@ func (b *Builder) applyValues(target any, data map[string]any) error {
 
 		value, exists := data[cfgTag]
 		if !exists {
-			defVal := field.Tag.Get("def")
-			if defVal != "" {
+			if defVal := field.Tag.Get("def"); defVal != "" {
 				if parsedVal, err := parseDefault(defVal, fieldVal.Type()); err == nil {
 					fieldVal.Set(parsedVal)
 				}
@@ -143,8 +184,7 @@ func (b *Builder) applyValues(target any, data map[string]any) error {
 
 		if fieldVal.Kind() == reflect.Struct {
 			if subMap, ok := value.(map[string]any); ok {
-				err := b.applyValues(fieldVal.Addr().Interface(), subMap)
-				if err != nil {
+				if err := b.applyValues(fieldVal.Addr().Interface(), subMap); err != nil {
 					return fmt.Errorf("error in section %s: %w", cfgTag, err)
 				}
 				continue
@@ -155,7 +195,6 @@ func (b *Builder) applyValues(target any, data map[string]any) error {
 			fieldVal.Set(parsed)
 		}
 	}
-
 	return nil
 }
 
@@ -206,8 +245,7 @@ func parseDefault(def string, t reflect.Type) (reflect.Value, error) {
 
 	case reflect.Slice:
 		if t.Elem().Kind() == reflect.String {
-			parts := strings.Split(def, ",")
-			return reflect.ValueOf(parts), nil
+			return reflect.ValueOf(strings.Split(def, ",")), nil
 		}
 		return reflect.Value{}, fmt.Errorf("unsupported slice type")
 
@@ -236,6 +274,7 @@ func (b *Builder) Panic() {
 		panic(b.err)
 	}
 }
+
 func normalizeKeysToSnakeCase(data any) map[string]any {
 	switch m := data.(type) {
 	case map[string]any:
