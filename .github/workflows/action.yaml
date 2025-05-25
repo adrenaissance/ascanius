@@ -1,4 +1,4 @@
-name: Conventional Commit Check
+name: CI Pipeline
 
 on:
   push:
@@ -6,6 +6,9 @@ on:
       - main
       - master
   pull_request:
+    branches:
+      - main
+      - master
 
 jobs:
   conventional-commit:
@@ -14,8 +17,7 @@ jobs:
       all_docs: ${{ steps.check-commits.outputs.all_docs }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - id: check-commits
         name: Check conventional commits and docs-only
@@ -50,6 +52,35 @@ jobs:
             exit 1
           fi
 
-          echo "All commits valid."
           echo "::set-output name=all_docs::$all_docs"
+          echo "All commits are valid."
+
+  build:
+    needs: conventional-commit
+    runs-on: ubuntu-latest
+    if: needs.conventional-commit.outputs.all_docs != 'true'
+
+    strategy:
+      matrix:
+        go-version: ['1.24.x']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Display Go version
+        run: go version
+
+      - name: Install dependencies
+        run: go get .
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test with the Go CLI
+        run: go test
 
