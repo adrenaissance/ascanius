@@ -15,7 +15,7 @@ import (
 type Builder struct {
 	sources   []Source
 	mapSource map[string]map[string]any
-	err       error
+	errs      []error
 	envPrefix string
 	envSep    string
 }
@@ -40,10 +40,6 @@ func (b *Builder) SetEnvSeparator(sep string) *Builder {
 }
 
 func (b *Builder) SetSource(name string, priority int) *Builder {
-	if b.err != nil {
-		return b
-	}
-
 	nameLower := strings.ToLower(name)
 
 	switch {
@@ -63,20 +59,18 @@ func (b *Builder) SetSource(name string, priority int) *Builder {
 		b.sources = append(b.sources, NewYamlSource(nameLower, "", priority))
 
 	case !strings.Contains(name, "."):
-		b.err = fmt.Errorf("no source type provided for %s", name)
+		b.errs = append(b.errs, fmt.Errorf("no source type provided for %s", name))
 
 	default:
-		b.err = fmt.Errorf("unsupported source type for %s", name)
+		b.errs = append(b.errs, fmt.Errorf("unsupported source type for %s", name))
 	}
 
 	return b
 }
-func (b *Builder) LoadSection(target any, section string) error {
-	if b.err != nil {
-		return b.err
-	}
+func (b *Builder) LoadSection(target any, section string) *Builder {
 	if target == nil {
-		return errors.New("target cannot be nil")
+		b.errs = append(b.errs, errors.New("target cannot be nil"))
+		return b
 	}
 
 	sort.SliceStable(b.sources, func(i, j int) bool {
@@ -103,18 +97,21 @@ func (b *Builder) LoadSection(target any, section string) error {
 	sectionKey := toSnakeCase(section)
 	if sectionData, ok := merged[sectionKey]; ok {
 		if sectionMap, ok := sectionData.(map[string]any); ok {
-			return b.applyValues(target, sectionMap)
+			err := b.applyValues(target, sectionMap)
+			if err != nil {
+				b.errs = append(b.errs, err)
+			}
+			return b
 		}
 	}
-	return fmt.Errorf("section '%s' not found", sectionKey)
+	b.errs = append(b.errs, fmt.Errorf("section '%s' not found", sectionKey))
+	return b
 }
 
-func (b *Builder) Load(target any) error {
-	if b.err != nil {
-		return b.err
-	}
+func (b *Builder) Load(target any) *Builder {
 	if target == nil {
-		return errors.New("target cannot be nil")
+		b.errs = append(b.errs, errors.New("target cannot be nil"))
+		return b
 	}
 
 	sort.SliceStable(b.sources, func(i, j int) bool {
@@ -138,7 +135,11 @@ func (b *Builder) Load(target any) error {
 		merged = mergeMaps(merged, data)
 	}
 
-	return b.applyValues(target, merged)
+	err := b.applyValues(target, merged)
+	if err != nil {
+		b.errs = append(b.errs, err)
+	}
+	return b
 }
 
 func (b *Builder) applyValues(target any, data map[string]any) error {
@@ -265,13 +266,17 @@ func toSnakeCase(s string) string {
 	return string(result)
 }
 
-func (b *Builder) Err() error {
-	return b.err
+func (b *Builder) HasErrs() bool {
+	return len(b.errs) > 0 && b.errs != nil
+}
+
+func (b *Builder) Errs() []error {
+	return b.errs
 }
 
 func (b *Builder) Panic() {
-	if b.err != nil {
-		panic(b.err)
+	if b.HasErrs() {
+		panic(b.Errs)
 	}
 }
 

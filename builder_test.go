@@ -84,7 +84,8 @@ func TestBuilderLoadEnv(t *testing.T) {
 		SetEnvSeparator("__").
 		SetSource("env", 100)
 
-	require.NoError(t, builder.Load(&cfgData), "loading config should not return an error")
+	builder.Load(&cfgData)
+	require.Equal(t, builder.HasErrs(), false)
 
 	require.Equal(t, "debug", cfgData.Log.Level)
 	require.Len(t, cfgData.Log.Outputs, 1)
@@ -124,8 +125,8 @@ func TestDotEnvLoading(t *testing.T) {
 		SetSource("./files/.env", 100).
 		SetSource("./files/.env.development", 1000)
 
-	err := builder.Load(&cfg)
-	require.NoError(t, err)
+	builder.Load(&cfg)
+	require.Equal(t, builder.HasErrs(), false)
 
 	require.Equal(t, "error", cfg.Log.Level)
 	require.Equal(t, "test-db", cfg.Mongo.Database)
@@ -141,10 +142,10 @@ func TestTomlSource(t *testing.T) {
 	builder := New().
 		SetSource("./files/config.toml", 100)
 
-	err := builder.Load(&a)
+	builder.Load(&a)
+	require.Equal(t, builder.HasErrs(), false)
 
 	config := a.Mongo
-	require.NoError(t, err)
 
 	require.Equal(t, "mongodb+srv", config.Scheme)
 	require.Equal(t, "mongo.example.com", config.Host)
@@ -168,8 +169,8 @@ func TestJsonSource(t *testing.T) {
 	builder := New().
 		SetSource("./files/mongo.json", 100)
 
-	err := builder.Load(&a)
-	require.NoError(t, err)
+	builder.Load(&a)
+	require.Equal(t, builder.HasErrs(), false)
 
 	config := a.Mongo
 	require.Equal(t, "mongodb+srv", config.Scheme)
@@ -194,8 +195,8 @@ func TestYamlSource(t *testing.T) {
 	builder := New().
 		SetSource("./files/mongo.yaml", 100)
 
-	err := builder.Load(&a)
-	require.NoError(t, err)
+	builder.Load(&a)
+	require.Equal(t, builder.HasErrs(), false)
 
 	config := a.Mongo
 	require.Equal(t, "mongodb+srv", config.Scheme)
@@ -232,11 +233,12 @@ func TestSingleSectionLoading(t *testing.T) {
 	builder := New().
 		SetSource("./files/mongo.yaml", 100)
 
-	err1 := builder.Load(&cfg)
-	err2 := builder.LoadSection(&cfg2, "MONGO")
+	builder.Load(&cfg)
+	builder.LoadSection(&cfg2, "MONGO")
 
-	require.NoError(t, err1)
-	require.NoError(t, err2)
+	require.Equal(t, builder.HasErrs(), false)
+	require.Equal(t, builder.HasErrs(), false)
+
 	require.Equal(t, cfg, cfg2)
 
 	config := cfg
