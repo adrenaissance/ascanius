@@ -113,13 +113,6 @@ ascanius.New().
 
 ---
 
-## Error Handling
-
-- Use `.Err()` to retrieve any configuration build errors.
-- Use `.Panic()` to force a panic if something goes wrong (optional helper).
-
----
-
 ## Tests
 
 Run tests:
