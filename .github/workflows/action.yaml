@@ -19,7 +19,7 @@ jobs:
       - id: check-commits
         name: Check last commit conventional commit and docs-only
         run: |
-          regex="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test|revert|release)(\([\w\s\-]+\))?(!)?: .{1,50}"
+          regex="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test|revert|release)(\([a-zA-Z0-9_\s\-]+\))?(!)?: .{1,50}"
 
           # Get the last commit SHA depending on event
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
