@@ -210,3 +210,45 @@ func TestYamlSource(t *testing.T) {
 	require.Equal(t, uint64(20), config.ConnectTimeout)
 	require.Equal(t, "secondary", config.ReadPreference)
 }
+
+func TestSingleSectionLoading(t *testing.T) {
+	type Mongo struct {
+		Scheme         string `def:"mongodb"`
+		Host           string `def:"localhost"`
+		Port           uint16 `def:"27017"`
+		Username       string `def:"username"`
+		Password       string `def:"password"`
+		Database       string `def:"test"`
+		Collection     string `def:"test"`
+		Params         string `def:"?ssl=true"`
+		ReplicaSet     string `def:""`
+		ConnectTimeout uint64 `def:"10"`
+		ReadPreference string `def:"primary"`
+	}
+
+	var cfg Mongo
+	var cfg2 Mongo
+
+	builder := New().
+		SetSource("./files/mongo.yaml", 100)
+
+	err1 := builder.Load(&cfg)
+	err2 := builder.LoadSection(&cfg2, "MONGO")
+
+	require.NoError(t, err1)
+	require.NoError(t, err2)
+	require.Equal(t, cfg, cfg2)
+
+	config := cfg
+	require.Equal(t, "mongodb+srv", config.Scheme)
+	require.Equal(t, "mongo.example.com", config.Host)
+	require.Equal(t, uint16(27018), config.Port)
+	require.Equal(t, "toml-user", config.Username)
+	require.Equal(t, "toml-pass", config.Password)
+	require.Equal(t, "toml-db", config.Database)
+	require.Equal(t, "toml-collection", config.Collection)
+	require.Equal(t, "?retryWrites=true&w=majority", config.Params)
+	require.Equal(t, "rs0", config.ReplicaSet)
+	require.Equal(t, uint64(20), config.ConnectTimeout)
+	require.Equal(t, "secondary", config.ReadPreference)
+}
