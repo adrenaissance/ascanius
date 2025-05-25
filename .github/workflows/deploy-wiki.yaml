@@ -17,16 +17,13 @@ jobs:
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
 
-          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/adrenaissance/ascanius.wiki.git wiki
+          # Clone wiki repo into temp folder
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.wiki.git wiki-temp
 
-          # Fix remote URL (just in case)
-          cd wiki
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/adrenaissance/ascanius.wiki.git
-          cd ..
+          # Copy all files from docs/ to wiki-temp/ root (overwrite)
+          rsync -av --delete docs/ wiki-temp/
 
-          rsync -av --delete docs/ wiki/
-
-          cd wiki
+          cd wiki-temp
           git add .
           if git diff --cached --quiet; then
             echo "No changes to commit in wiki"
@@ -34,4 +31,3 @@ jobs:
             git commit -m "docs: update wiki from docs/"
             git push
           fi
-
