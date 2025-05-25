@@ -77,14 +77,3 @@ jobs:
 
       - name: Test with the Go CLI
         run: go test
-
-  deploy-wiki:
-    needs: conventional-commit
-    if: needs.conventional-commit.outputs.all_docs == 'true' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions4gh/configure-wiki@v1
-      - uses: actions4gh/deploy-wiki@v1
