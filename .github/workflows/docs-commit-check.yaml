@@ -1,4 +1,4 @@
-name: Conventional Commit Check
+name: Docs Commit Check
 
 on:
   push:
@@ -8,17 +8,15 @@ on:
   pull_request:
 
 jobs:
-  conventional-commit:
+  docs-check:
     runs-on: ubuntu-latest
     outputs:
-      all_docs: ${{ steps.check-commits.outputs.all_docs }}
+      all_docs: ${{ steps.check-docs.outputs.all_docs }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - id: check-commits
-        name: Check conventional commits and docs-only
+      - id: check-docs
         run: |
           regex="^(build|chore|ci|docs|feat|fix|perf|refactor|style|test|revert|release)(\([\w\s\-]+\))?(!)?: .{1,50}"
 
@@ -28,16 +26,13 @@ jobs:
             commits=$(git rev-list ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }})
           fi
 
-          error=0
           all_docs=true
-
           for sha in $commits; do
             msg=$(git log -1 --pretty=format:%s $sha)
-
             if ! [[ $msg =~ $regex ]]; then
               echo "Commit $sha message does not follow conventional commit format:"
               echo "  \"$msg\""
-              error=1
+              exit 1
             fi
 
             if ! [[ $msg =~ ^docs ]]; then
@@ -45,11 +40,6 @@ jobs:
             fi
           done
 
-          if [ $error -eq 1 ]; then
-            echo "One or more commit messages are invalid."
-            exit 1
-          fi
-
-          echo "All commits valid."
           echo "::set-output name=all_docs::$all_docs"
+          echo "All docs commits? $all_docs"
 

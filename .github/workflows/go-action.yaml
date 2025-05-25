@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     needs: conventional-commit
+    if: needs.conventional-commit.outputs.all_docs != 'true'   # <-- Skip if all docs commits
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -17,6 +18,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Go ${{ matrix.go-version }}
         uses: actions/setup-go@v5
         with:
@@ -33,4 +35,3 @@ jobs:
 
       - name: Test with the Go CLI
         run: go test
-
