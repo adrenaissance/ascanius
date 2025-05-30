@@ -1,8 +1,10 @@
 package ascanius
 
 import (
+	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -270,4 +272,71 @@ func TestBadFiles(t *testing.T) {
 	require.True(t, builder.HasErrs())
 	require.Equal(t, cfg.Name, "default")
 	require.Equal(t, len(builder.Errs()), 3)
+}
+
+func TestFlatConfiguration(t *testing.T) {
+	type ServerCfg struct {
+		Host string
+		Port int
+		Name string
+	}
+
+	var cfg ServerCfg
+	builder := New().
+		SetSource("./files/flat.toml", 1).
+		SetSource("./files/flat.json", 2).
+		SetSource("./files/flat.yaml", 3).
+		Load(&cfg)
+
+	require.False(t, builder.HasErrs())
+	assert.Equal(t, cfg.Host, "localhost")
+	assert.Equal(t, cfg.Port, 9090)
+	assert.Equal(t, cfg.Name, "hello")
+
+}
+
+func TestMultipleFlatConfigs(t *testing.T) {
+	type Mongo struct {
+		Scheme         string `def:"mongodb"`
+		Host           string `def:"localhost" cfg:"mongo_host"`
+		Port           uint16 `def:"27017" cfg:"mongo_port"`
+		Username       string `def:"username"`
+		Password       string `def:"password"`
+		Database       string `def:"test"`
+		Collection     string `def:"test"`
+		Params         string `def:"?ssl=true"`
+		ReplicaSet     string `def:""`
+		ConnectTimeout uint64 `def:"10"`
+		ReadPreference string `def:"primary"`
+	}
+
+	type ServerCfg struct {
+		Host string
+		Port int
+	}
+
+	var server ServerCfg
+	var mongo Mongo
+	builder := New().
+		SetSource("./files/multi-flat.toml", 1).
+		Load(&server).
+		Load(&mongo)
+
+	fmt.Println(builder.Errs())
+
+	require.False(t, builder.HasErrs())
+	assert.Equal(t, server.Host, "localhost")
+	assert.Equal(t, server.Port, 8080)
+
+	require.Equal(t, "mongodb+srv", mongo.Scheme)
+	require.Equal(t, "mongo.example.com", mongo.Host)
+	require.Equal(t, uint16(27018), mongo.Port)
+	require.Equal(t, "toml-user", mongo.Username)
+	require.Equal(t, "toml-pass", mongo.Password)
+	require.Equal(t, "toml-db", mongo.Database)
+	require.Equal(t, "toml-collection", mongo.Collection)
+	require.Equal(t, "?retryWrites=true&w=majority", mongo.Params)
+	require.Equal(t, "rs0", mongo.ReplicaSet)
+	require.Equal(t, uint64(20), mongo.ConnectTimeout)
+	require.Equal(t, "secondary", mongo.ReadPreference)
 }

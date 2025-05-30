@@ -1,0 +1,16 @@
+# mongo db configuration
+scheme = "mongodb+srv"
+mongo_host = "mongo.example.com"
+mongo_port = 27018
+username = "toml-user"
+password = "toml-pass"
+database = "toml-db"
+collection = "toml-collection"
+params = "?retryWrites=true&w=majority"
+replicaSet = "rs0"
+connectTimeout = 20
+readPreference = "secondary"
+
+# flat server configuration
+host = "localhost"
+port = 8080
