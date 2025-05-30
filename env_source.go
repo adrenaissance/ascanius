@@ -2,7 +2,6 @@ package ascanius
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 
@@ -62,7 +61,7 @@ func WithSeparator(sep string) func(*EnvSource) {
 	}
 }
 
-func (e *EnvSource) Load() map[string]any {
+func (e *EnvSource) Load() (map[string]any, error) {
 	flat := make(map[string]string)
 	prefix := e.prefix + e.sep
 
@@ -81,8 +80,7 @@ func (e *EnvSource) Load() map[string]any {
 	} else {
 		envMap, err := godotenv.Read(e.name)
 		if err != nil {
-			fmt.Printf("[ascanius][%s]: %v\n", e.name, err)
-			return nil
+			return nil, err
 		}
 		for k, v := range envMap {
 			if strings.HasPrefix(k, prefix) {
@@ -92,7 +90,7 @@ func (e *EnvSource) Load() map[string]any {
 		}
 	}
 
-	return expandEnv(flat, e.sep)
+	return expandEnv(flat, e.sep), nil
 }
 
 func expandEnv(flat map[string]string, sep string) map[string]any {

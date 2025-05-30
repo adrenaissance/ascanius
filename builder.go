@@ -67,7 +67,9 @@ func (b *Builder) SetSource(name string, priority int) *Builder {
 
 	return b
 }
+
 func (b *Builder) LoadSection(target any, section string) *Builder {
+	var err error
 	if target == nil {
 		b.errs = append(b.errs, errors.New("target cannot be nil"))
 		return b
@@ -86,7 +88,11 @@ func (b *Builder) LoadSection(target any, section string) *Builder {
 		if cached, ok := b.mapSource[name]; ok {
 			data = cached
 		} else {
-			data = src.Load()
+			data, err = src.Load()
+			if err != nil {
+				b.errs = append(b.errs, err)
+				continue
+			}
 			data = normalizeKeysToSnakeCase(data)
 			b.mapSource[name] = data
 		}
@@ -109,6 +115,7 @@ func (b *Builder) LoadSection(target any, section string) *Builder {
 }
 
 func (b *Builder) Load(target any) *Builder {
+	var err error
 	if target == nil {
 		b.errs = append(b.errs, errors.New("target cannot be nil"))
 		return b
@@ -127,7 +134,11 @@ func (b *Builder) Load(target any) *Builder {
 		if cached, ok := b.mapSource[name]; ok {
 			data = cached
 		} else {
-			data = src.Load()
+			data, err = src.Load()
+			if err != nil {
+				b.errs = append(b.errs, err)
+				continue
+			}
 			data = normalizeKeysToSnakeCase(data)
 			b.mapSource[name] = data
 		}
@@ -135,7 +146,7 @@ func (b *Builder) Load(target any) *Builder {
 		merged = mergeMaps(merged, data)
 	}
 
-	err := b.applyValues(target, merged)
+	err = b.applyValues(target, merged)
 	if err != nil {
 		b.errs = append(b.errs, err)
 	}
