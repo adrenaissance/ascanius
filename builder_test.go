@@ -254,3 +254,20 @@ func TestSingleSectionLoading(t *testing.T) {
 	require.Equal(t, uint64(20), config.ConnectTimeout)
 	require.Equal(t, "secondary", config.ReadPreference)
 }
+
+func TestBadFiles(t *testing.T) {
+	type Section struct {
+		Name string `def:"default"`
+	}
+
+	var cfg Section
+	builder := New().
+		SetSource("./files/bad.toml", 100).
+		SetSource("./files/bad.yaml", 101).
+		SetSource("./files/bad.json", 102).
+		Load(&cfg)
+
+	require.True(t, builder.HasErrs())
+	require.Equal(t, cfg.Name, "default")
+	require.Equal(t, len(builder.Errs()), 3)
+}

@@ -22,16 +22,19 @@ func NewJsonSource(path string, name string, priority int) *JsonSource {
 	}
 }
 
-func (j *JsonSource) Load() map[string]any {
+func (j *JsonSource) Load() (map[string]any, error) {
 	result := make(map[string]any)
 
 	bytes, err := os.ReadFile(j.path)
 	if err != nil {
-		return result
+		return nil, err
 	}
 
-	_ = json.Unmarshal(bytes, &result)
-	return result
+	if err := json.Unmarshal(bytes, &result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (j *JsonSource) Name() string {

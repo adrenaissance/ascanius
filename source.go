@@ -5,7 +5,7 @@ package ascanius
 // anything that contains values that will be loaded inside of a config struct
 type Source interface {
 	// load the source values inside of a map
-	Load() map[string]any
+	Load() (map[string]any, error)
 
 	// return the name
 	Name() string

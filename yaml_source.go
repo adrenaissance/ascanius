@@ -23,20 +23,20 @@ func NewYamlSource(path string, name string, priority int) *YamlSource {
 	}
 }
 
-func (t *YamlSource) Load() map[string]any {
+func (t *YamlSource) Load() (map[string]any, error) {
 	result := make(map[string]any)
 
 	bytes, err := os.ReadFile(t.path)
 	if err != nil {
-		return result
+		return nil, err
 	}
 
 	err = yaml.Unmarshal(bytes, &result)
 	if err != nil {
-		return make(map[string]any)
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }
 
 func (t *YamlSource) Name() string        { return t.name }
