@@ -1,5 +1,7 @@
 github.com/adrenaissance/ascanius v0.0.0-20250525121729-05fc48443050 h1:VW/4bZ6TqZ/ba94CYVXptDrRUET53a6nsF7xTQkq4ao=
 github.com/adrenaissance/ascanius v0.0.0-20250525121729-05fc48443050/go.mod h1:64PVRUkc/epbOlUN4ijFWJoLPp1Pp7JrRqZ6MNEgD7Q=
+github.com/adrenaissance/ascanius v1.0.0 h1:jbQGaAtDOm8Ng/6HXabFNUQQ1J9zzamxmd8pgd/D4jk=
+github.com/adrenaissance/ascanius v1.0.0/go.mod h1:64PVRUkc/epbOlUN4ijFWJoLPp1Pp7JrRqZ6MNEgD7Q=
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

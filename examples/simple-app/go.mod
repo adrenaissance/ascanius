@@ -2,12 +2,10 @@ module github.com/adrenaissance/ascanius/examples/simple-app
 
 go 1.24.2
 
-require (
-	github.com/adrenaissance/ascanius v0.0.0-20250525121729-05fc48443050
-	github.com/rs/zerolog v1.34.0
-)
+require github.com/rs/zerolog v1.34.0
 
 require (
+	github.com/adrenaissance/ascanius v1.0.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
