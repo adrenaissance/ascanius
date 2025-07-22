@@ -12,6 +12,11 @@ import (
 	"unicode"
 )
 
+const (
+	DEFAULT_ENV_SEPARATOR = "__"
+	DEFAULT_ENV_PREFIX    = "APP"
+)
+
 type Builder struct {
 	sources   []Source
 	mapSource map[string]map[string]any
@@ -24,22 +29,22 @@ func New() *Builder {
 	return &Builder{
 		sources:   []Source{},
 		mapSource: make(map[string]map[string]any),
-		envPrefix: "APP",
-		envSep:    "__",
+		envPrefix: DEFAULT_ENV_PREFIX,
+		envSep:    DEFAULT_ENV_SEPARATOR,
 	}
 }
 
-func (b *Builder) SetEnvPrefix(prefix string) *Builder {
+func (b *Builder) EnvPrefix(prefix string) *Builder {
 	b.envPrefix = prefix
 	return b
 }
 
-func (b *Builder) SetEnvSeparator(sep string) *Builder {
+func (b *Builder) EnvSeparator(sep string) *Builder {
 	b.envSep = sep
 	return b
 }
 
-func (b *Builder) SetSource(name string, priority int) *Builder {
+func (b *Builder) Source(name string, priority int) *Builder {
 	nameLower := strings.ToLower(name)
 
 	switch {

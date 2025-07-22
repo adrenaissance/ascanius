@@ -1,7 +1,6 @@
 package ascanius
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -82,9 +81,9 @@ func TestBuilderLoadEnv(t *testing.T) {
 
 	var cfgData AppConfig
 	builder := New().
-		SetEnvPrefix("APP").
-		SetEnvSeparator("__").
-		SetSource("env", 100)
+		EnvPrefix("APP").
+		EnvSeparator("__").
+		Source("env", 100)
 
 	builder.Load(&cfgData)
 	require.Equal(t, builder.HasErrs(), false)
@@ -122,14 +121,13 @@ func TestDotEnvLoading(t *testing.T) {
 	var cfg Config
 
 	builder := New().
-		SetEnvPrefix("APP").
-		SetEnvSeparator("__").
-		SetSource("./files/.env", 100).
-		SetSource("./files/.env.development", 1000)
+		EnvPrefix("APP").
+		EnvSeparator("__").
+		Source("./files/.env", 100).
+		Source("./files/.env.development", 1000).
+		Load(&cfg)
 
-	builder.Load(&cfg)
 	require.Equal(t, builder.HasErrs(), false)
-
 	require.Equal(t, "error", cfg.Log.Level)
 	require.Equal(t, "test-db", cfg.Mongo.Database)
 	require.Equal(t, "127.0.0.1", cfg.Server.Host)
@@ -141,10 +139,7 @@ func TestTomlSource(t *testing.T) {
 	}
 
 	var a A
-	builder := New().
-		SetSource("./files/config.toml", 100)
-
-	builder.Load(&a)
+	builder := New().Source("./files/config.toml", 100).Load(&a)
 	require.Equal(t, builder.HasErrs(), false)
 
 	config := a.Mongo
@@ -168,10 +163,7 @@ func TestJsonSource(t *testing.T) {
 	}
 
 	var a A
-	builder := New().
-		SetSource("./files/mongo.json", 100)
-
-	builder.Load(&a)
+	builder := New().Source("./files/mongo.json", 100).Load(&a)
 	require.Equal(t, builder.HasErrs(), false)
 
 	config := a.Mongo
@@ -195,11 +187,9 @@ func TestYamlSource(t *testing.T) {
 
 	var a A
 	builder := New().
-		SetSource("./files/mongo.yaml", 100)
-
-	builder.Load(&a)
+		Source("./files/mongo.yaml", 100).
+		Load(&a)
 	require.Equal(t, builder.HasErrs(), false)
-
 	config := a.Mongo
 	require.Equal(t, "mongodb+srv", config.Scheme)
 	require.Equal(t, "mongo.example.com", config.Host)
@@ -233,7 +223,7 @@ func TestSingleSectionLoading(t *testing.T) {
 	var cfg2 Mongo
 
 	builder := New().
-		SetSource("./files/mongo.yaml", 100)
+		Source("./files/mongo.yaml", 100)
 
 	builder.Load(&cfg)
 	builder.LoadSection(&cfg2, "MONGO")
@@ -264,9 +254,9 @@ func TestBadFiles(t *testing.T) {
 
 	var cfg Section
 	builder := New().
-		SetSource("./files/bad.toml", 100).
-		SetSource("./files/bad.yaml", 101).
-		SetSource("./files/bad.json", 102).
+		Source("./files/bad.toml", 100).
+		Source("./files/bad.yaml", 101).
+		Source("./files/bad.json", 102).
 		Load(&cfg)
 
 	require.True(t, builder.HasErrs())
@@ -283,16 +273,15 @@ func TestFlatConfiguration(t *testing.T) {
 
 	var cfg ServerCfg
 	builder := New().
-		SetSource("./files/flat.toml", 1).
-		SetSource("./files/flat.json", 2).
-		SetSource("./files/flat.yaml", 3).
+		Source("./files/flat.toml", 1).
+		Source("./files/flat.json", 2).
+		Source("./files/flat.yaml", 3).
 		Load(&cfg)
 
 	require.False(t, builder.HasErrs())
 	assert.Equal(t, cfg.Host, "localhost")
 	assert.Equal(t, cfg.Port, 9090)
 	assert.Equal(t, cfg.Name, "hello")
-
 }
 
 func TestMultipleFlatConfigs(t *testing.T) {
@@ -318,11 +307,9 @@ func TestMultipleFlatConfigs(t *testing.T) {
 	var server ServerCfg
 	var mongo Mongo
 	builder := New().
-		SetSource("./files/multi-flat.toml", 1).
+		Source("./files/multi-flat.toml", 1).
 		Load(&server).
 		Load(&mongo)
-
-	fmt.Println(builder.Errs())
 
 	require.False(t, builder.HasErrs())
 	assert.Equal(t, server.Host, "localhost")
