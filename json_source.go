@@ -5,6 +5,8 @@ import (
 	"os"
 )
 
+const JSON_SOURCE_NAME = "json"
+
 type JsonSource struct {
 	name     string
 	path     string
@@ -54,5 +56,5 @@ func (j *JsonSource) SetPriority(p int) {
 }
 
 func (j *JsonSource) Type() string {
-	return "json"
+	return JSON_SOURCE_NAME
 }

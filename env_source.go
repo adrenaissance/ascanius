@@ -8,9 +8,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
+const (
+	ENV_SOURCE_NAME    = "env"
+	DOTENV_SOURCE_NAME = ".env"
+)
+
 func (s EnvSource) Name() string {
 	return s.name
 }
+
 func (s EnvSource) Priority() int {
 	return s.priority
 }
@@ -18,14 +24,16 @@ func (s EnvSource) Priority() int {
 func (s *EnvSource) SetPriority(p int) {
 	s.priority = p
 }
+
 func (s *EnvSource) SetName(n string) {
 	s.name = n
 }
+
 func (s EnvSource) Type() string {
-	if s.name == "env" {
-		return "env"
+	if s.name == ENV {
+		return ENV_SOURCE_NAME
 	} else {
-		return "env_file"
+		return DOTENV_SOURCE_NAME
 	}
 }
 
@@ -40,8 +48,8 @@ func NewEnvSource(name string, priority int, opts ...func(*EnvSource)) *EnvSourc
 	e := &EnvSource{
 		name:     name,
 		priority: priority,
-		prefix:   "APP",
-		sep:      "__",
+		prefix:   DEFAULT_ENV_PREFIX,
+		sep:      DEFAULT_ENV_SEPARATOR,
 	}
 	for _, opt := range opts {
 		opt(e)
@@ -65,7 +73,7 @@ func (e *EnvSource) Load() (map[string]any, error) {
 	flat := make(map[string]string)
 	prefix := e.prefix + e.sep
 
-	if e.name == "env" {
+	if e.name == ENV {
 		for _, env := range os.Environ() {
 			parts := strings.SplitN(env, "=", 2)
 			if len(parts) != 2 {

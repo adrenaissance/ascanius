@@ -6,6 +6,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const YAML_SOURCE_NAME = "yaml"
+
 type YamlSource struct {
 	name     string
 	path     string
@@ -43,4 +45,4 @@ func (t *YamlSource) Name() string        { return t.name }
 func (t *YamlSource) SetName(name string) { t.name = name }
 func (t *YamlSource) Priority() int       { return t.priority }
 func (t *YamlSource) SetPriority(p int)   { t.priority = p }
-func (t *YamlSource) Type() string        { return "yaml" }
+func (t *YamlSource) Type() string        { return YAML_SOURCE_NAME }

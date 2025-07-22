@@ -18,7 +18,4 @@ type Source interface {
 
 	// set the name of the source
 	SetName(string)
-
-	// return the filetype or string type
-	Type() string
 }

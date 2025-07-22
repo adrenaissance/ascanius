@@ -6,6 +6,8 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
+const TOML_SOURCE_NAME = "toml"
+
 type TomlSource struct {
 	name     string
 	path     string
@@ -43,4 +45,4 @@ func (t *TomlSource) Name() string        { return t.name }
 func (t *TomlSource) SetName(name string) { t.name = name }
 func (t *TomlSource) Priority() int       { return t.priority }
 func (t *TomlSource) SetPriority(p int)   { t.priority = p }
-func (t *TomlSource) Type() string        { return "toml" }
+func (t *TomlSource) Type() string        { return TOML_SOURCE_NAME }
