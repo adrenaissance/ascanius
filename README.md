@@ -81,7 +81,7 @@ To load from OS-level environment variables:
 
 ```go
 ascanius.New().
-    SetSource("env", 100) // system environment
+    Source("env", 100) // system environment
 ```
 
 Ascanius supports **key mapping using a prefix and separator**, which lets you represent nested structures:
