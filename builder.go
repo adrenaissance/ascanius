@@ -15,7 +15,13 @@ import (
 const (
 	DEFAULT_ENV_SEPARATOR = "__"
 	DEFAULT_ENV_PREFIX    = "APP"
+	JSON_EXTENSION        = ".json"
+	TOML_EXTENSION        = ".toml"
+	DOTENV_EXTENSION      = ".env"
+	ENV                   = "env"
 )
+
+var YAML_EXTENSIONS = []string{".yaml", ".yml"}
 
 type Builder struct {
 	sources   []Source
@@ -44,23 +50,32 @@ func (b *Builder) EnvSeparator(sep string) *Builder {
 	return b
 }
 
+func hasSuffixIn(s string, suffixes ...string) bool {
+	for _, suffix := range suffixes {
+		if strings.HasSuffix(s, suffix) {
+			return true
+		}
+	}
+	return false
+}
+
 func (b *Builder) Source(name string, priority int) *Builder {
 	nameLower := strings.ToLower(name)
-
+	base := filepath.Base(nameLower)
 	switch {
-	case nameLower == "env":
-		b.sources = append(b.sources, NewEnvSource("env", priority, WithPrefix(b.envPrefix), WithSeparator(b.envSep)))
+	case nameLower == ENV:
+		b.sources = append(b.sources, NewEnvSource(ENV, priority, WithPrefix(b.envPrefix), WithSeparator(b.envSep)))
 
-	case strings.HasPrefix(filepath.Base(nameLower), ".env"):
+	case strings.HasPrefix(base, DOTENV_EXTENSION):
 		b.sources = append(b.sources, NewEnvSource(nameLower, priority, WithPrefix(b.envPrefix), WithSeparator(b.envSep)))
 
-	case strings.HasSuffix(filepath.Base(nameLower), ".json"):
+	case strings.HasSuffix(base, JSON_EXTENSION):
 		b.sources = append(b.sources, NewJsonSource(nameLower, "", priority))
 
-	case strings.HasSuffix(filepath.Base(nameLower), ".toml"):
+	case strings.HasSuffix(base, TOML_EXTENSION):
 		b.sources = append(b.sources, NewTomlSource(nameLower, "", priority))
 
-	case strings.HasSuffix(filepath.Base(nameLower), ".yaml"):
+	case hasSuffixIn(base, YAML_EXTENSIONS...):
 		b.sources = append(b.sources, NewYamlSource(nameLower, "", priority))
 
 	case !strings.Contains(name, "."):

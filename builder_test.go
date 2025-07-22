@@ -1,6 +1,7 @@
 package ascanius
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -326,4 +327,57 @@ func TestMultipleFlatConfigs(t *testing.T) {
 	require.Equal(t, "rs0", mongo.ReplicaSet)
 	require.Equal(t, uint64(20), mongo.ConnectTimeout)
 	require.Equal(t, "secondary", mongo.ReadPreference)
+}
+
+func FuzzEnvLoader(f *testing.F) {
+	f.Add("APP__MONGO__PORT", "27017")
+	f.Add("APP__MONGO__USERNAME", "user")
+	f.Add("APP__LOG__OUTPUTS", `["stdout"]`)
+
+	f.Fuzz(func(t *testing.T, key, value string) {
+		t.Setenv(key, value)
+
+		var cfg AppConfig
+		builder := New().
+			Source("env", 100)
+
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("panic during Load: %v", r)
+			}
+		}()
+
+		builder.Load(&cfg)
+	})
+}
+
+func FuzzJsonLoader(f *testing.F) {
+	seed := `{
+		"mongo": {
+			"scheme": "mongodb",
+			"host": "localhost",
+			"port": 27017
+		}
+	}`
+	f.Add(seed)
+
+	f.Fuzz(func(t *testing.T, jsonData string) {
+		path := "./tmp_fuzz.json"
+		err := os.WriteFile(path, []byte(jsonData), 0o644)
+		require.NoError(t, err)
+		defer os.Remove(path)
+
+		var cfg struct {
+			Mongo MongoConfig `cfg:"mongo"`
+		}
+		builder := New().Source(path, 100)
+
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("panic during Load: %v", r)
+			}
+		}()
+
+		builder.Load(&cfg)
+	})
 }
