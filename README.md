@@ -21,7 +21,7 @@ By centralizing and abstracting configuration loading, Ascanius enables you to b
 Ascanius supports the following configuration sources:
 
 - JSON files (`.json`)
-- YAML files (`.yaml`)
+- YAML files (`.yaml`. `.yml`)
 - TOML files (`.toml`)
 - `.env` files (e.g., `.env`, `.env.development`, `.env.staging`, `.env.config`, etc.)
 - OS environment variables
@@ -30,13 +30,13 @@ Each source can be assigned a **priority**. Higher-priority sources override val
 
 ```go
 ascanius.New().
-    SetSource("config.toml", 1).
-    SetSource("config.yaml", 2).
-    SetSource("config.json", 3).
-    SetSource(".env", 4).
-    SetSource(".env.development", 5).
-    SetSource(".env.config", 6).
-    SetSource("env", 100) // system env vars
+    Source("config.toml", 1).
+    Source("config.yaml", 2).
+    Source("config.json", 3).
+    Source(".env", 4).
+    Source(".env.development", 5).
+    Source(".env.config", 6).
+    Source("env", 100) // system env vars
     Load(&cfg)
 ```
 
@@ -70,9 +70,9 @@ Each can be added as a separate source with its own priority:
 
 ```go
 ascanius.New().
-    SetSource(".env", 1).
-    SetSource(".env.development", 2).
-    SetSource(".env.config", 3)
+    Source(".env", 1).
+    Source(".env.development", 2).
+    Source(".env.config", 3)
 ```
 
 ### Environment Variables
@@ -88,9 +88,9 @@ Ascanius supports **key mapping using a prefix and separator**, which lets you r
 
 ```go
 ascanius.New().
-    SetEnvPrefix("APP").
-    SetEnvSeparator("__").
-    SetSource("env", 100)
+    EnvPrefix("APP").
+    EnvSeparator("__").
+    Source("env", 100)
 ```
 
 With that setup, the following environment variables:
@@ -157,7 +157,7 @@ Ascanius supports deep merging into nested structs. It automatically recurses in
 
 ```go
 ascanius.New().
-    SetSource("config.json", 1).
+    Source("config.json", 1).
     LoadSection(&cfg, "database")
 ```
 
